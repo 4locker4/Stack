@@ -1,20 +1,26 @@
-#include "../inc/StackCtor.h"
+#include "../inc/Stack.h"
 
 const char * is_null              = "There is NULL pointer\n";
 const char * bad_hash             = "Your hash is bad bad boy\n";
 const char * out_of_capacity      = "Relly? Size is too big, stupid student\n";
 const char * stack_underflo       = "Bul bul bul there is no elements in my\n";
 const char * goose_error          = "AAAAA, Gals are here!!!\n";
-const char * stack_flo            = "Its too big for me, i cant\n";
+const char * stack_flo            = "Its too big for me, i cant (stack_flo)\n";
 const char * some_one_pooped_here = "Bro, you pooped in ypur data. Did your mum teach you not to poop near your food?\n";
 
 int StackCtor (Stack_t * stk, size_t capacity)
 {                                                                                                                                                                                                                               //popa
     if (stk == NULL)
     {
-        COLOR_PRINT (RED, "Bad pointer to stack, we cant create a stack.\n");
+        COLOR_PRINT (RED, "163 stack on my neck. Bad pointer to stack, we cant create a stack, kek.\n");
         return IS_NULL;
     }
+
+    if (stk->data != NULL)
+        {
+            COLOR_PRINT (RED, "You made a repeated stack\n");
+            return REPEATED_VAL;
+        }
 
     stk->capacity = capacity;
     stk->size     = 0;
@@ -43,6 +49,12 @@ int StackCtor (Stack_t * stk, size_t capacity)
 
 int StackDtor (Stack_t * stk)
 {
+    if (stk->data == NULL)
+    {
+        COLOR_PRINT (RED, "You called StackDtor again\n");
+        return REPEATED_VAL;
+    }
+
     VERIFY_STACK (stk)
 
     free(stk->data);
@@ -84,12 +96,13 @@ int StackPop (Stack_t * stk)
 {
     VERIFY_STACK (stk)
 
-    stackElem poped = stk->data[stk->size];
-
     if (stk->size <= (stk->capacity - DELTA_CAPACITY_SIZE) / 2)
         MemNew (stk, DECREASE);
 
+    stackElem poped = stk->data[stk->size];
+
     stk->data[--stk->size] = POISON_NUM;
+
     ON_HASH (stk)
 
     VERIFY_STACK (stk)
@@ -131,13 +144,13 @@ int Verificator (Stack_t * stk)
 { 
     unsigned ERRORS = 0;
 
-    if (stk == NULL)
+    if (stk <= NULL)
     {
         ERRORS |= IS_NULL;
         return 1;
     }
-
-    if (stk->data == NULL)
+printf ("%p\n", &stk->data);
+    if (stk->data <= NULL)
         ERRORS |= IS_NULL;
 
     if (stk->size > stk->capacity)  
@@ -146,17 +159,26 @@ int Verificator (Stack_t * stk)
     if (stk->capacity > 0xDAFAC)
         ERRORS |= STACK_FLO;
     
+#ifdef GOOSES
+
     CHECK_GOOSES (stk->goose1);
 
     CHECK_GOOSES (stk->goose2);
 
-    if (* (gooseType *) ((((char *) stk->data) - MEM_OF_GOOSES)) != GOOSE_CONST ||
-        * (gooseType *) (((char *) stk->data) + stk->capacity * sizeof (stackElem) + ADD_ALIGEN (stk->capacity)) != GOOSE_CONST)
-        ERRORS |= SOME_ONE_POOPED_HERE;
-        
+    if ((char *) stk->data - MEM_OF_GOOSES >= 0)
+    {
+        if (* (gooseType *) ((((char *) stk->data) - MEM_OF_GOOSES)) != GOOSE_CONST ||
+            * (gooseType *) (((char *) stk->data) + stk->capacity * sizeof (stackElem) + ADD_ALIGEN (stk->capacity)) != GOOSE_CONST)
+            ERRORS |= SOME_ONE_POOPED_HERE;        
+    }
+#endif
+
 #ifdef HASH_CALC
     if (HashCalc ((char *) stk, sizeof (Stack_t)) != stk->HashAddres)
         ERRORS |= BAD_HASH;
+    if (HashBufferCalc ((char *) stk->data, stk->capacity) != stk->BufferHash)
+        ERRORS |= BAD_HASH;
+
 #endif
 
     if (ERRORS)
@@ -176,7 +198,7 @@ egor pidoras(he like ebatsa in jopa)
 ROUND!!!!!!!!!!
 */
 
-int StackDump (Stack_t * stk, const char * var_name, const char * file_name, const int line)
+int StackDump (Stack_t * stk, const int ERROR, const char * var_name, const char * file_name, const int line)
 {
     FILE * DEBUG_FILE = fopen ("DEBUG.txt", "a+");
 
@@ -193,19 +215,11 @@ int StackDump (Stack_t * stk, const char * var_name, const char * file_name, con
         return IS_NULL;
     }
 
-    if (stk->data == NULL) Dump_to_file ("Data is NULL\n");
-
-    PRINT_GOOSES (stk->goose1);
-
-    PRINT_GOOSES (stk->goose2);
-
-    PRINT_GOOSES (*((char *) stk->data - MEM_OF_GOOSES));
-
-    PRINT_GOOSES (*((char *) stk->data + stk->capacity * sizeof (stackElem) + ADD_ALIGEN (stk->capacity)));
-
-#ifdef HASH_CALC
-    Dump_to_file ("Hash: %d\n", stk->HashAddres);
-#endif
+    if (stk->data == NULL)
+    {
+        Dump_to_file ("Data is NULL\n");
+        return IS_NULL;
+    }
 
     Dump_to_file ("ALLIGEN: <%d>,\tGOOSE_SIZE: <%d>\n", ADD_ALIGEN (stk->capacity), MEM_OF_GOOSES)
 
@@ -214,6 +228,24 @@ int StackDump (Stack_t * stk, const char * var_name, const char * file_name, con
     Dump_to_file ("\tcapasity = ");
     Dump_to_file ("<%d>\n", stk->capacity);
 
+    PRINT_GOOSES (stk->goose1);
+
+    PRINT_GOOSES (stk->goose2);
+
+    if (ERROR & SOME_ONE_POOPED_HERE)
+        Dump_to_file ("Sorry, your buffer is broke\n")
+    else
+    {
+        PRINT_GOOSES (*((char *) stk->data - MEM_OF_GOOSES));
+
+        PRINT_GOOSES (*((char *) stk->data + stk->capacity * sizeof (stackElem) + ADD_ALIGEN (stk->capacity)));
+    }
+
+#ifdef HASH_CALC
+    Dump_to_file ("Hash: %d\n", stk->HashAddres);
+    Dump_to_file ("Buffer hash: %d\n", stk->BufferHash);
+#endif
+
     if (stk->data == NULL) 
     {
         Dump_to_file ("\tstk->data == NULL\n\n");
@@ -221,21 +253,26 @@ int StackDump (Stack_t * stk, const char * var_name, const char * file_name, con
         return IS_NULL;
     }
 
-    size_t counter = 0;
-    while (counter < stk->capacity)
-    {   
-        Dump_to_file ("[%d] = ", counter);
-        if (DoubleComparison (stk->data[counter], POISON_NUM))
-        {
-            Dump_to_file ("%x (POISON)\n", stk->data[counter]);
-            counter++;
-        }
-        else
-        {
-            Dump_to_file ("%lg\n",   stk->data[counter]);
-            counter++;
+    if (!(OUT_OF_CAPACITY & ERROR || STACK_FLO & ERROR || STACK_UNDERFLO & ERROR))
+    {
+        size_t counter = 0;
+        while (counter < stk->capacity)
+        {   
+            Dump_to_file ("[%d] = ", counter);
+            if (DoubleComparison (stk->data[counter], POISON_NUM))
+            {
+                Dump_to_file ("%x (POISON)\n", stk->data[counter]);
+                counter++;
+            }
+            else
+            {
+                Dump_to_file ("%lg\n",   stk->data[counter]);
+                counter++;
+            }
         }
     }
+    else
+        Dump_to_file ("Sorry, our capacity is bad, we can`t print stack\n");
 
     Dump_to_file ("Dump ends.\n");
     
@@ -254,6 +291,40 @@ int HashCalc (const char * data, size_t size)
     }
 
     return HashAddres;
+}
+
+int HashBufferCalc (const char * data, size_t size)
+{
+    int HashAddres = 0;
+    size -= sizeof (hashType);
+
+    for (int i = 0; i < size; i++)
+    {
+        HashAddres = (HashAddres * size);
+        HashAddres = HashAddres << 8;
+        size *= 33 * 31 * 29;   
+
+        while (true)
+        {
+            HashAddres = size >> 10;
+
+            if (HashAddres & 33 * 31 == 0)
+                continue;
+            else if (size >> 8 == 17)
+            {
+                HashAddres = 31 * (size << 10);
+                HashAddres = HashAddres << 9;
+                break;
+            }
+            else
+            size *= 1777;
+                break;
+        }
+
+        break;
+    }
+
+    return size;
 }
 
 int FileWriter (const char * file_directory, const unsigned * ERRORS)

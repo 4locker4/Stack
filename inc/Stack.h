@@ -11,22 +11,22 @@
 #define GOOSES
 #define DEBUG
 
+
 //------------------------------------- DEFINE -------------------------------------
+
 #define Dump_to_file(...) fprintf (DEBUG_FILE, __VA_ARGS__);
 
-//
 #ifdef HASH_CALC
 
-    #define ON_HASH(stk) stk->HashAddres = HashCalc ((char *) stk, sizeof (Stack_t));
+    #define ON_HASH(stk) {stk->HashAddres = HashCalc ((char *) stk, sizeof (Stack_t));                               \
+                          stk->BufferHash = HashBufferCalc ((char *) stk->data, stk->capacity);}
 
 #else
 
     #define ON_HASH(stk);
 
 #endif
-//
 
-//
 #ifdef GOOSES
 
     #define ADD_ALIGEN(capacity) (8 - capacity % 8) * ((capacity % 8) != 0)
@@ -54,7 +54,7 @@
 //
 #ifdef DEBUG
 
-    #define VERIFY_STACK(stk) if (Verificator (stk)) {StackDump(stk, #stk, __FILE__, __LINE__); exit (1);}
+    #define VERIFY_STACK(stk) {int check = Verificator(stk); if (check) {StackDump(stk, check, #stk, __FILE__, __LINE__); exit (1);}}
 
 #else 
 
@@ -80,6 +80,8 @@ const size_t STANDART_SIZE        = 16;
 
 const int STANDART_STACK_ELEM     = 0;
 
+const int MASK                    = 0 << 10;
+
 //--------------------------------------- ENUM --------------------------------------
 
 enum REALLOC_MODE
@@ -93,18 +95,20 @@ enum REALLOC_MODE
 typedef struct
 {
 #ifdef GOOSES
-    gooseType goose1 = GOOSE_CONST;
+    gooseType goose1   = GOOSE_CONST;
 #endif
-    size_t size      = STANDART_STACK_ELEM;
-    size_t capacity  = STANDART_STACK_ELEM;
-    stackElem * data = NULL;
+
+    size_t size        = STANDART_STACK_ELEM;
+    size_t capacity    = STANDART_STACK_ELEM;
+    stackElem * data   = NULL;
 
 #ifdef GOOSES
-    gooseType goose2 = GOOSE_CONST;
+    gooseType goose2   = GOOSE_CONST;
 #endif
 
 #ifdef HASH_CALC
-    int HashAddres   = STANDART_STACK_ELEM;
+    int HashAddres     = STANDART_STACK_ELEM;
+    int BufferHash     = STANDART_STACK_ELEM;
 #endif
 } Stack_t;
 
@@ -116,10 +120,11 @@ int StackPush    (Stack_t * stk, stackElem top);
 int StackPop     (Stack_t * stk);
 int MemNew       (Stack_t * stk, REALLOC_MODE flag);
 int Verificator  (Stack_t * stk);
-int StackDump    (Stack_t * stk, const char * var_name, const char * file_name, const int line);
+int StackDump    (Stack_t * stk, const int ERROR, const char * var_name, const char * file_name, const int line);
 int HashCalc     (const char * data, size_t size);
 int FileWriter   (const char * file_directory, const unsigned * ERRORS);
 int DoubleMemSet (stackElem * pointer, const stackElem num, size_t size);
+int HashBufferCalc (const char * data, size_t size);
 
 
 #endif //
