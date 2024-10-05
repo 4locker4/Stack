@@ -6,16 +6,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define RESET   "\x1b[0m"
-#define RED     "\x1b[31m"
-#define GREEN   "\x1b[32m"
-#define YELLOW  "\x1b[33m"
-#define BLUE    "\x1b[34m"
-#define MANGETA "\x1b[35m"
-#define CYAN    "\x1b[36m"
-#define STRANGE "\x1b[1;35;7m"
-
-#define COLOR_PRINT(color, ...)  {printf (color __VA_ARGS__); printf (RESET); }    ///< Colorful print
+#include "Utils.h"
 
 #define my_assert(expr) if (!(expr))\
                         {\
@@ -36,11 +27,11 @@ enum ERRORS
     OK                   = 0,
     IS_NULL              = 1 << 0,
     BAD_HASH             = 1 << 1,
-    OUT_OF_CAPACITY      =      0100,
-    STACK_UNDERFLO       =     01000,
-    GOOSE_ERROR          =    010000, 
-    STACK_FLO            =   0100000,
-    SOME_ONE_POOPED_HERE =  01000000
+    OUT_OF_CAPACITY      = 1 << 2,
+    STACK_UNDERFLO       = 1 << 3,
+    GOOSE_ERROR          = 1 << 4, 
+    STACK_FLO            = 1 << 5,
+    SOME_ONE_POOPED_HERE = 1 << 6
 };
 
 #endif
