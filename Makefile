@@ -9,9 +9,9 @@ flags = -c -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-e
 		-Wsign-promo -Wstack-usage=8192 -Wstrict-aliasing -Wstrict-null-sentinel -Wtype-limits 	\
 		-Wwrite-strings -Werror=vla -D_DEBUG -D_EJUDGE_CLIENT_SIDE
 
-includes = ./inc/Errors.h ./inc/Utils.h ./inc/StackCtor.h
+includes = ./inc/Errors.h ./inc/Utils.h ./inc/Stack.h
 
-sources = ./src/main.cpp ./src/StackCtor.cpp ./src/Utils.cpp
+sources = ./src/main.cpp ./src/Stack.cpp ./src/Utils.cpp
 
 objects = $(sources:.cpp=.o)
 
