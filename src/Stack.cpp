@@ -86,7 +86,7 @@ void StackDtor (Stack_t * stk)
 
     Stack_Counter_Creator (stk, INCREASE);
 
-    free(stk->data);
+    free((char *) stk->data - sizeof (gooseType));
     stk->data = NULL;
 
 #ifdef GOOSES
