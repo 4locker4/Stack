@@ -10,24 +10,24 @@
     fclose (DEBUG_FILE);                            \
 }
 
-#define ERROR_FWRITER(ERRORS, LOG_FILE)                                     \
-{                                                                           \
-    FILE * DEBUG_FILE = fopen (LOG_FILE, "a+");                             \
-                                                                            \   
-    rewind (DEBUG_FILE);                                                    \
-                                                                            \
-    for (size_t i = 0; ERRORS_SIZE > i; i++)                                \
-    {                                                                       \
-        if (ERRORS & (i << 1))                                              \
-        {                                                                   \
-            fprintf (DEBUG_FILE, "%s", stack_errors_interpretation[i]);     \
-        }                                                                   \
-    }                                                                       \
-    fwrite ("\n", 1, 1, DEBUG_FILE);                                        \
-                                                                            \
-    if (!fclose (DEBUG_FILE))                                               \
-        COLOR_PRINT("File didn`t close\n");                                 \
-}
+// #define ERROR_FWRITER(ERRORS, LOG_FILE)                                     \
+// {                                                                           \
+//     FILE * DEBUG_FILE = fopen (LOG_FILE, "a+");                             \
+//                                                                             \   
+//     rewind (DEBUG_FILE);                                                    \
+//                                                                             \
+//     for (size_t i = 0; ERRORS_SIZE > i; i++)                                \
+//     {                                                                       \
+//         if (ERRORS & (i << 1))                                              \
+//         {                                                                   \
+//             fprintf (DEBUG_FILE, "%s", stack_errors_interpretation[i]);     \
+//         }                                                                   \
+//     }                                                                       \
+//     fwrite ("\n", 1, 1, DEBUG_FILE);                                        \
+//                                                                             \
+//     if (!fclose (DEBUG_FILE))                                               \
+//         COLOR_PRINT("File didn`t close\n");                                 \
+// }
 
 #ifdef HASH_CALC
 

@@ -5,18 +5,16 @@ int main ()
 
     COLOR_PRINT (STRANGE, "Lets go\n");
     Stack_t stk = {};
-    Stack_t stk9 = {};
 
     StackCtor (&stk, STANDART_SIZE);
-    StackCtor (&stk9, STANDART_SIZE);
     
 
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < 11; i++)
     {
         StackPush (&stk, (double) i);
         
     }
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < 11; i++)
     {
         COLOR_PRINT (BLUE, "<%lg>, size = <%d>\n", stk.data[stk.size - i - 1], stk.size - i);
     }
@@ -37,7 +35,6 @@ int main ()
 
     for (int i = 0; i < stk.size + 10; i++)
     {
-
         COLOR_PRINT (BLUE, "<%lg>, size = <%d>\n", stk.data[i], stk.size - i);
     }
 

@@ -77,5 +77,4 @@ void        StackDtor             (Stack_t * stk);
 void        StackPush             (Stack_t * stk, stackElem top);
 stackElem   StackPop              (Stack_t * stk);
 
-
 #endif //

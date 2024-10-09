@@ -24,6 +24,8 @@ static int  HashCalc              (const char * data, size_t size);
 static void DoubleMemSet          (stackElem  * pointer, const stackElem num, size_t size);
 static int  HashBufferCalc        (const char * data, size_t size);
 static void Stack_Counter_Creator (Stack_t * new_stack, REALLOC_MODE flag);
+static void FileWriter            (const char * file_directory, const unsigned * ERRORS);
+
 
 void StackCtor (Stack_t * stk, size_t capacity)
 {                                                                                                                                                                                          //popa       
@@ -230,7 +232,7 @@ static int Verificator (Stack_t * stk)
 #endif
 
     if (ERRORS)
-        ERROR_FWRITER(ERRORS, LOG_FILE)
+        FileWriter(LOG_FILE, &ERRORS);
     return ERRORS;
 }
 
@@ -377,23 +379,30 @@ static int HashBufferCalc (const char * data, size_t size)
     return size;
 }
 
-// void FileWriter (const char * file_directory, const unsigned * ERRORS)
-// {
-//     FILE * DEBUG_FILE = fopen (file_directory, "a+");
+static void FileWriter (const char * file_directory, const unsigned * ERRORS)
+{
+    FILE * DEBUG_FILE = fopen (file_directory, "a+");
 
-//     rewind (DEBUG_FILE);
+    if (!DEBUG_FILE)
+    {
+        COLOR_PRINT (RED, "ERROR: can`t create a file\n");
+        return;
+    }
 
-//     for (size_t i = 0; ERRORS_SIZE > i; i++)
-//     {
-//         if (*ERRORS & (i << 1))
-//         {
-//             fprintf (DEBUG_FILE, "%s", stack_errors_interpretation[i]);
-//         }
-//     }
-//     fwrite ("\n", 1, 1, DEBUG_FILE);
+    rewind (DEBUG_FILE);
 
-//     fclose (DEBUG_FILE);
-// }
+    for (size_t i = 0; ERRORS_SIZE > i; i++)
+    {
+        if (*ERRORS & (i << 1))
+        {
+            fprintf (DEBUG_FILE, "%s", stack_errors_interpretation[i]);
+        }
+    }
+    fwrite ("\n", 1, 1, DEBUG_FILE);
+
+    if (!fclose (DEBUG_FILE))
+        COLOR_PRINT("File didn`t close\n"); 
+}
 
 static void DoubleMemSet (stackElem * pointer, const stackElem num, size_t size)
 {
