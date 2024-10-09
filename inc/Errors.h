@@ -34,7 +34,8 @@ enum ERRORS
     GOOSE_ERROR          = 1 << 4, 
     STACK_FLO            = 1 << 5,
     SOME_ONE_POOPED_HERE = 1 << 6,
-    REPEATED_VAL         = 1 << 7
+    REPEATED_VAL         = 1 << 7,
+    NO_INITED_STACKS     = 1 << 8
 };
 
 #endif
