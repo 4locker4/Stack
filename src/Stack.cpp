@@ -129,7 +129,11 @@ void StackPush (Stack_t * stk, stackElem top)
 stackElem StackPop (Stack_t * stk)
 {
     VERIFY_STACK(stk)
-
+    if (stk->size == 0)
+    {
+        COLOR_PRINT (RED, "Can`t pop, there is no elements\n");
+        return IS_NULL;
+    }
     if (stk->size <= (stk->capacity - DELTA_CAPACITY_SIZE) / 2)
         MemNew (stk, DECREASE);
 
@@ -194,7 +198,9 @@ static int Verificator (Stack_t * stk)
         ERRORS |= NO_INITED_STACKS;
         return ERRORS;
     }
-
+    if (stk->capacity <= 0)
+        ERRORS |= STACK_UNDERFLO;
+        
     if (stk->size > stk->capacity)  
         ERRORS |= OUT_OF_CAPACITY;
 
