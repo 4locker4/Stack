@@ -47,6 +47,7 @@ void StackCtor (Stack_t * stk, size_t capacity)
         Isolated_fprintf(;,"You made a repeated stack\n")
         return;
     }
+
 #endif
 
     stk->capacity = capacity;
@@ -76,15 +77,9 @@ void StackCtor (Stack_t * stk, size_t capacity)
 
 void StackDtor (Stack_t * stk)
 {
-    if (stk->data == NULL)
-    {
-        Isolated_fprintf(;, "You called StackDtor again\n")
-        return;
-    }
-
     VERIFY_STACK(stk)
 
-    Stack_Counter_Creator (stk, INCREASE);
+    Stack_Counter_Creator (stk, DECREASE);
 
     free((char *) stk->data - sizeof (gooseType));
     stk->data = NULL;
@@ -200,7 +195,7 @@ static int Verificator (Stack_t * stk)
     }
     if (stk->capacity <= 0)
         ERRORS |= STACK_UNDERFLO;
-        
+
     if (stk->size > stk->capacity)  
         ERRORS |= OUT_OF_CAPACITY;
 
@@ -354,35 +349,13 @@ static int HashCalc (const char * data, size_t size)
 static int HashBufferCalc (const char * data, size_t size)
 {
     int HashAddres = 0;
-    size -= sizeof (hashType);
 
-    for (size_t i = 0; i < size; i++)
+    for (size_t counter = 0; size > counter; counter++)
     {
-        HashAddres = (HashAddres * size);
-        HashAddres = HashAddres << 8;
-        size *= 33 * 31 * 29;   
-
-        while (true)
-        {
-            HashAddres = size >> 10;
-
-            if (HashAddres & 33 * 31 == 0)
-                continue;
-            else if (size >> 8 == 17)
-            {
-                HashAddres = 31 * (size << 10);
-                HashAddres = HashAddres << 9;
-                break;
-            }
-            else
-            size *= 1777;
-                break;
-        }
-
-        break;
+        HashAddres = ((HashAddres << 5) + HashAddres) ^ data[counter];
     }
 
-    return size;
+    return HashAddres;
 }
 
 static void FileWriter (const char * file_directory, const unsigned * ERRORS)
@@ -421,7 +394,7 @@ static void DoubleMemSet (stackElem * pointer, const stackElem num, size_t size)
     return;
 }
 
-static void Stack_Counter_Creator (Stack_t * new_stack, REALLOC_MODE flag)
+static void Stack_Counter_Creator (Stack_t * stack, REALLOC_MODE flag)
 {
     if (inited_stacks.capacity == 0)
     {
@@ -429,11 +402,11 @@ static void Stack_Counter_Creator (Stack_t * new_stack, REALLOC_MODE flag)
 
         inited_stacks.quentity_of_stacks[inited_stacks.capacity + 1] = NULL;
 
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity++]   = new_stack;
+        inited_stacks.quentity_of_stacks[inited_stacks.capacity++]   = stack;
     }
     else if (flag)
     {
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity] = new_stack;
+        inited_stacks.quentity_of_stacks[inited_stacks.capacity] = stack;
 
         inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
 
@@ -441,12 +414,23 @@ static void Stack_Counter_Creator (Stack_t * new_stack, REALLOC_MODE flag)
     }
     else if (!flag)
     {
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity] = NULL;
+        for (int i = 0; i < inited_stacks.capacity; i++)
+    {
+        if (inited_stacks.quentity_of_stacks[i] == stack)
+            inited_stacks.quentity_of_stacks[i]  = NULL;
+    }
+        for (int i = 0; i < inited_stacks.capacity - 1; i++)
+        {
+            if (inited_stacks.quentity_of_stacks [i] == NULL)
+            {
+                inited_stacks.quentity_of_stacks[i]     = inited_stacks.quentity_of_stacks [i + 1];
+                inited_stacks.quentity_of_stacks[i + 1] = NULL;
+            }
+        }
 
         inited_stacks.capacity--;
 
-        if (inited_stacks.capacity != 0)
-            inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
+        inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
     }
     else
         Isolated_fprintf (;, "We can`t take pointer to stack, sorry\n")
