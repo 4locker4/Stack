@@ -1,5 +1,7 @@
 #include "../inc/Stack.h"
-
+#include "../src/Defines.h"
+#include "../src/Utils.h"
+#include "../src/Errors.h"
 int main ()
 {
 
@@ -9,17 +11,16 @@ int main ()
     StackCtor (&stk, STANDART_SIZE);
     
 
-    for (int i = 0; i < 11; i++)
+    for (int i = 0; i < 5; i++)
     {
-        StackPush (&stk, (double) i);
-        
+        StackPush (&stk, i);
     }
     for (int i = 0; i < 11; i++)
     {
         COLOR_PRINT (BLUE, "<%lg>, size = <%d>\n", stk.data[stk.size - i - 1], stk.size - i);
     }
     
-    printf ("pointer to stack: <%p>\nsize: <%u>\tcapacity: <%u>\n", 
+    printf ("pointer to stack: <%p>\nsize: <%d>\tcapacity: <%d>\n", 
             &stk.data, stk.size, stk.capacity);
     
     // char * fall = (char *) &stk.data;
@@ -30,7 +31,7 @@ int main ()
 
     while (stk.size > 0)
     {
-        COLOR_PRINT (GREEN, "%lg\n", StackPop (&stk));
+        COLOR_PRINT (GREEN, "%lg - poped from stack\n", StackPop (&stk));
     }
 
     for (int i = 0; i < stk.size + 10; i++)
@@ -39,7 +40,6 @@ int main ()
     }
 
 
-    StackDtor (&stk);
     StackDtor (&stk);
 
 

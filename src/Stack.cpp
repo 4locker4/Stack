@@ -1,5 +1,8 @@
 #include "../inc/Stack.h"
-#include "../inc/Defines.h"
+
+#include "../src/Defines.h"
+#include "../src/Utils.h"
+#include "../src/Errors.h"
 
 static char *   LOG_FILE      = "DEBUG.txt"; 
 static n_Stacks inited_stacks = {};
@@ -7,46 +10,52 @@ static n_Stacks inited_stacks = {};
 static char * stack_errors_interpretation[ERRORS_SIZE] = 
 {
     "There is NULL pointer\n", 
-    "Your hash is bad bad boy (bad hash)\n", 
-    "Relly? Size is too big, stupid student\n",
-    "Bul bul bul there is no elements in me\n",
+    "Bad hash\n", 
+    "Size more than capacity\n",
+    "Capacity = 0\n",
     "AAAAA, Gals are here!!! (Our gooses are bad)\n",
-    "Its too big for me, i cant (stack_flo)\n", 
-    "Bro, you pooped in ypur data. Did your mum teach you not to poop near your food?\n",
+    "Stack flo\n", 
+    "You pooped into your data\n",
     "You got something repeated\n",
     "There is no inited stack or another problem\n"
 };
 
-static void MemNew                (Stack_t * stk, REALLOC_MODE flag);
-static int  Verificator           (Stack_t * stk);
-static void StackDump             (Stack_t * stk, const int ERROR, const char * var_name, const char * file_name, const int line);
-static int  HashCalc              (const char * data, size_t size);
-static void DoubleMemSet          (stackElem  * pointer, const stackElem num, size_t size);
-static int  HashBufferCalc        (const char * data, size_t size);
-static void Stack_Counter_Creator (Stack_t * new_stack, REALLOC_MODE flag);
-static void FileWriter            (const char * file_directory, const unsigned * ERRORS);
+static void MemNew                 (Stack_t * stk, REALLOC_MODE flag);
+static int  Verificator            (Stack_t * stk);
+static void StackDump              (Stack_t * stk, const int ERROR, const char * var_name, const char * file_name, const int line);
+static int  HashCalc               (const char * data, size_t size);
+static void DoubleMemSet           (stackElem  * pointer, const stackElem num, size_t size);
+static int  HashBufferCalc         (const char * data, size_t size);
+static void FileWriter             (const char * file_directory, const unsigned * ERRORS);
+static int  AddToStackChecker      (Stack_t * stk);
+static int  RemoveFromStackChecker (Stack_t * stk);
+static int  InitStackChecker       (Stack_t * stk);
+
 
 
 void StackCtor (Stack_t * stk, size_t capacity)
 {                                                                                                                                                                                          //popa       
-    bool flag = false;
-
     if (stk == NULL)
     {
         Isolated_fprintf(;, "163 stack on my neck. Bad pointer to stack, we cant create a stack, kek.\n")
         return;
     }
 
-    Stack_Counter_Creator (stk, INCREASE);
-
 #ifdef DEBUG
+    bool flag = false;
+
     CHEKING_FOR_STACK_AVAILABILITY(stk, flag)
 
-    if (!flag)
+    if (flag)
     {
         Isolated_fprintf(;,"You made a repeated stack\n")
         return;
     }
+
+    if (inited_stacks.capacity == 0)
+        InitStackChecker (stk);
+    else
+        AddToStackChecker (stk);
 
 #endif
 
@@ -70,8 +79,6 @@ void StackCtor (Stack_t * stk, size_t capacity)
     ON_HASH(stk)
 #endif
 
-    VERIFY_STACK(stk);
-
     return;
 }
 
@@ -79,7 +86,7 @@ void StackDtor (Stack_t * stk)
 {
     VERIFY_STACK(stk)
 
-    Stack_Counter_Creator (stk, DECREASE);
+    RemoveFromStackChecker (stk);
 
     free((char *) stk->data - sizeof (gooseType));
     stk->data = NULL;
@@ -104,18 +111,18 @@ void StackDtor (Stack_t * stk)
 }
 
 void StackPush (Stack_t * stk, stackElem top)
-{    
+{
     VERIFY_STACK(stk)
 
     if (stk->size == stk->capacity)
     {
         MemNew (stk, INCREASE);
     }
-    
+
     stk->data[stk->size++] = top;
 
     ON_HASH(stk)
-    
+
     VERIFY_STACK(stk)
 
     return;
@@ -129,16 +136,15 @@ stackElem StackPop (Stack_t * stk)
         COLOR_PRINT (RED, "Can`t pop, there is no elements\n");
         return IS_NULL;
     }
+
     if (stk->size <= (stk->capacity - DELTA_CAPACITY_SIZE) / 2)
         MemNew (stk, DECREASE);
 
-    stackElem poped = stk->data[stk->size];
+    stackElem poped = stk->data[--stk->size];
 
-    stk->data[--stk->size] = POISON_NUM;
+    stk->data[stk->size] = POISON_NUM;
 
     ON_HASH(stk)
-
-    VERIFY_STACK(stk)
 
     return poped;
 }
@@ -182,7 +188,7 @@ static int Verificator (Stack_t * stk)
     if (stk == NULL)
     {
         ERRORS |= IS_NULL;
-        return ERRORS;;
+        return ERRORS;
     }
 
     CHEKING_FOR_STACK_AVAILABILITY(stk, flag)
@@ -227,7 +233,7 @@ static int Verificator (Stack_t * stk)
 
     if (HashCalc ((char *) stk, sizeof (Stack_t)) != stk->HashAddres)
         ERRORS |= BAD_HASH;
-    if (HashBufferCalc ((char *) stk->data, stk->capacity) != stk->BufferHash)
+    if (HashBufferCalc ((char *) stk->data, stk->size) != stk->BufferHash)
         ERRORS |= BAD_HASH;
 
 #endif
@@ -335,27 +341,28 @@ static void StackDump (Stack_t * stk, const int ERROR, const char * var_name, co
 
 static int HashCalc (const char * data, size_t size)
 {
-    int HashAddres = 0;
+    int Hash = 0; // rename
+    //size is bad
     size -= (sizeof (hashType) * 2 + sizeof (gooseType));
 
     for (size_t counter = 0; size > counter; counter++)
     {
-        HashAddres = ((HashAddres << 5) + HashAddres) ^ data[counter];
+        Hash = ((Hash << 5) + Hash) ^ data[counter];
     }
 
-    return HashAddres;
+    return Hash;
 }
 
 static int HashBufferCalc (const char * data, size_t size)
 {
-    int HashAddres = 0;
+    int Hash = 0;
 
     for (size_t counter = 0; size > counter; counter++)
     {
-        HashAddres = ((HashAddres << 5) + HashAddres) ^ data[counter];
+        Hash = ((Hash << 5) + Hash) ^ data[counter];
     }
 
-    return HashAddres;
+    return Hash;
 }
 
 static void FileWriter (const char * file_directory, const unsigned * ERRORS)
@@ -380,7 +387,7 @@ static void FileWriter (const char * file_directory, const unsigned * ERRORS)
     fwrite ("\n", 1, 1, DEBUG_FILE);
 
     if (!fclose (DEBUG_FILE))
-        COLOR_PRINT("File didn`t close\n"); 
+        COLOR_PRINT(MANGETA, "File didn`t close\n"); 
 }
 
 static void DoubleMemSet (stackElem * pointer, const stackElem num, size_t size)
@@ -394,46 +401,40 @@ static void DoubleMemSet (stackElem * pointer, const stackElem num, size_t size)
     return;
 }
 
-static void Stack_Counter_Creator (Stack_t * stack, REALLOC_MODE flag)
-{
-    if (inited_stacks.capacity == 0)
-    {
-        inited_stacks.quentity_of_stacks = (Stack_t **) calloc (2, sizeof (Stack_t *));
-
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity + 1] = NULL;
-
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity++]   = stack;
-    }
-    else if (flag)
-    {
-        inited_stacks.quentity_of_stacks[inited_stacks.capacity] = stack;
-
-        inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
-
-        inited_stacks.capacity++;
-    }
-    else if (!flag)
-    {
-        for (int i = 0; i < inited_stacks.capacity; i++)
-    {
-        if (inited_stacks.quentity_of_stacks[i] == stack)
+int RemoveFromStackChecker (Stack_t * stk)
+{   
+    for (int i = 0; i < inited_stacks.capacity; i++)
+        if (inited_stacks.quentity_of_stacks[i] == stk)
             inited_stacks.quentity_of_stacks[i]  = NULL;
-    }
-        for (int i = 0; i < inited_stacks.capacity - 1; i++)
+
+    for (int i = 0; i < inited_stacks.capacity - 1; i++)
+    {
+        if (inited_stacks.quentity_of_stacks[i] == NULL)
         {
-            if (inited_stacks.quentity_of_stacks [i] == NULL)
-            {
-                inited_stacks.quentity_of_stacks[i]     = inited_stacks.quentity_of_stacks [i + 1];
-                inited_stacks.quentity_of_stacks[i + 1] = NULL;
-            }
+            inited_stacks.quentity_of_stacks[i]     = inited_stacks.quentity_of_stacks [i + 1];
+            inited_stacks.quentity_of_stacks[i + 1] = NULL;
         }
-
-        inited_stacks.capacity--;
-
-        inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
     }
-    else
-        Isolated_fprintf (;, "We can`t take pointer to stack, sorry\n")
 
-    return;
+    inited_stacks.capacity--;
+
+    inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity * sizeof (Stack_t *));
+}
+
+int AddToStackChecker (Stack_t * stk)
+{
+    inited_stacks.quentity_of_stacks = (Stack_t **) realloc (inited_stacks.quentity_of_stacks, inited_stacks.capacity + 1);
+
+    inited_stacks.quentity_of_stacks[inited_stacks.capacity + 1] = NULL;
+
+    inited_stacks.quentity_of_stacks[inited_stacks.capacity++]   = stk;
+}
+
+int InitStackChecker (Stack_t * stk)
+{
+    inited_stacks.quentity_of_stacks = (Stack_t **) calloc (2, sizeof (Stack_t *));
+
+    inited_stacks.quentity_of_stacks[inited_stacks.capacity + 1] = NULL;
+
+    inited_stacks.quentity_of_stacks[inited_stacks.capacity++]   = stk;
 }

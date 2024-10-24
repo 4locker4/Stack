@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "Utils.h"
-#include "Errors.h"
-
 #define HASH_CALC
 #define GOOSES
 #define DEBUG
@@ -51,6 +48,8 @@ typedef struct
 
     size_t size        = STANDART_STACK_ELEM;
     size_t capacity    = STANDART_STACK_ELEM;
+
+    // It includes payload and two canarey
     stackElem * data   = NULL;
 
 #ifdef HASH_CALC
